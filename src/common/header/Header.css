@@ -11,7 +11,7 @@
 .app-logo {
     animation: app-logo-spin infinite 3.5s linear;
     height: 35px;
-    background: #ff7f7f;
+    background: red;
 }
  
 @keyframes app-logo-spin {
