@@ -15,3 +15,8 @@
 ::-webkit-scrollbar-thumb:hover {
   background: grey;
 }
+
+.movie-poster {
+    height: 100%;
+    width: auto;
+}
