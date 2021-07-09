@@ -19,6 +19,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Checkbox from '@material-ui/core/Checkbox';
 import ListItemText from '@material-ui/core/ListItemText';
 import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
 
 const styles = theme => ({
     root: {
@@ -154,6 +155,21 @@ class Home extends Component {
                                         defaultValue=""
                                         InputLabelProps={{shrink: true}}                                            
                                     />
+                                </FormControl>
+                                <FormControl className={classes.formControl}>
+                                    <TextField
+                                        id="releaseDateEnd"
+                                        label="Release Date End"
+                                        type="date"
+                                        defaultValue=""
+                                        InputLabelProps={{shrink: true}}                                            
+                                    />
+                                </FormControl>
+                                <br /><br />
+                                <FormControl className={classes.formControl}>
+                                    <Button variant="contained" color="primary">
+                                        APPLY
+                                    </Button>
                                 </FormControl>
                             </CardContent>
                         </Card>
