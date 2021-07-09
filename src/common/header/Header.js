@@ -12,7 +12,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import Input from '@material-ui/core/Input';
 import PropTypes from 'prop-types';
 import FormHelperText from '@material-ui/core/FormHelperText';
-import BookShow from '../../screens/bookshow/BookShow'
+import BookShow from '../../screens/bookshow/BookShow';
 
 const customStyles = {
     content: {
