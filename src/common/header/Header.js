@@ -181,7 +181,12 @@ class Header extends Component {
     }
 
     logoutHandler = (e) => {
+        sessionStorage.removeItem("uuid");
+        sessionStorage.removeItem("access-token");
 
+        this.setState({
+            loggedIn: false
+        });
     }
 
     render() {
