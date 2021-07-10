@@ -11,7 +11,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import Input from '@material-ui/core/Input';
 import PropTypes from 'prop-types';
 import FormHelperText from '@material-ui/core/FormHelperText';
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const customStyles = {
     content: {
@@ -76,7 +76,8 @@ class Header extends Component {
             registerPasswordRequired: "dispNone",
             registerPassword: "",
             contactRequired: "dispNone",
-            contact: ""
+            contact: "",
+            registrationSuccess: false
         });
     }
 
@@ -102,6 +103,29 @@ class Header extends Component {
         this.state.mail === "" ? this.setState({ mailRequired: "dispBlock" }) : this.setState({ mailRequired: "dispNone" });
         this.state.registerPassword === "" ? this.setState({ registerPasswordRequired: "dispBlock" }) : this.setState({ registerPasswordRequired: "dispNone" });
         this.state.contact === "" ? this.setState({ contactRequired: "dispBlock" }) : this.setState({ contactRequired: "dispNone" });
+
+        let dataSignup = JSON.stringify({
+            "email_address": this.state.email,
+            "first_name": this.state.firstname,
+            "last_name": this.state.lastname,
+            "mobile_number": this.state.contact,
+            "password": this.state.registerPassword
+        })
+
+        let xhrSignup = new XMLHttpRequest();
+        let that = this;
+        xhrSignup.addEventListener("readystatechange", function () {
+            if (this.readyState === 4) {
+                that.setState({
+                    registrationSuccess: true
+                });
+            }
+        });
+
+        xhrSignup.open("POST", this.props.baseUrl + "signup");
+        xhrSignup.setRequestHeader("Content-Type", "application/json");
+        xhrSignup.setRequestHeader("Cache-Control", "no-cache");
+        xhrSignup.send(dataSignup);
     }
 
     inputUsernameChangeHandler = (e) => {
@@ -144,13 +168,13 @@ class Header extends Component {
                     </div>
                     {this.props.showBookShowButton === "true" ?
                         <div className="bookshow-button">
-                        <Link to={"/bookshow/" + this.props.id}>
+                            <Link to={"/bookshow/" + this.props.id}>
                                 <Button variant="contained" color="primary">
                                     Book Show
                                 </Button>
                             </Link>
                         </div>
-                    : ""}
+                        : ""}
                 </header>
                 <Modal ariaHideApp={false} isOpen={this.state.modalIsOpen} contentLabel="Login" onRequestClose={this.closeModalHandler} style={customStyles}>
                     <Tabs value={this.state.value} onChange={this.tabChangeHandler}>
@@ -227,6 +251,14 @@ class Header extends Component {
                             </FormControl>
                             <br />
                             <br />
+                            {this.state.registrationSuccess === true &&
+                                <FormControl>
+                                    <span className="successText">
+                                        Registration Successful. Please Login!
+                                    </span>
+                                </FormControl>
+                            }
+                            <br /><br />
                             <Button variant="contained" color="primary" onClick={this.registerClickHandler}>REGISTER</Button>
                         </TabContainer>}
                 </Modal>
