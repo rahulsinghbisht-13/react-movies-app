@@ -12,6 +12,7 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-modal": "^3.14.3",
+    "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.3",
     "react-youtube": "^7.13.1",
     "typeface-roboto": "^1.1.13",

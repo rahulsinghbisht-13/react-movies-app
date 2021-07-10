@@ -20,8 +20,6 @@ import Checkbox from '@material-ui/core/Checkbox';
 import ListItemText from '@material-ui/core/ListItemText';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
-import ReactDOM from 'react-dom';
-import Details from '../../screens/details/Details';
 
 const styles = theme => ({
     root: {
@@ -58,9 +56,26 @@ class Home extends Component {
         super();
         this.state = {
             movieName: "",
+            upcomingMovies: [{}],
             genres: [],
             artists: []
         }
+    }
+
+    componentWillUnmount() {
+        let data = null;
+        let xhr = new XMLHttpRequest();
+        let that = this;
+        xhr.addEventListener("readystatechange", function() {
+            if(this.readyState === 4) {
+                console.log(JSON.parse(this.responseText));
+                that.setState({upcomingMovies: JSON.parse(this.responseText).movies});
+            }
+        })
+
+        xhr.open("GET", this.props.baseUrl + "movies?status=PUBLISHED");
+        xhr.setRequestHeader("Cache-Control", "no-cache");
+        xhr.send(data);
     }
 
     movieNameChangeHandler = (event) => {
@@ -76,7 +91,7 @@ class Home extends Component {
     }
 
     movieClickHandler = (movieId) => {
-        ReactDOM.render(<Details movieId={movieId}/>, document.getElementById('root'));
+        this.props.history.push('/movie/' + movieId);
     }
 
     render() {
@@ -88,8 +103,8 @@ class Home extends Component {
                     <span>Upcoming Movies</span>
                 </div>
                 <GridList cols={5} className={classes.gridListUpcomingMovies}>
-                    {moviesData.map(movie => (
-                        <GridListTile key={movie.id}>
+                    {this.state.upcomingMovies.map(movie => (
+                        <GridListTile key={"upcomingMovies" + movie.id}>
                             <img src={movie.poster_url} className="movie-poster" alt={movie.title} />
                             <GridListTileBar title={movie.title} />
                         </GridListTile>
@@ -127,7 +142,6 @@ class Home extends Component {
                                         renderValue={selected => selected.join(', ')}
                                         value={this.state.genres}
                                         onChange={this.genreSelectHandler}>
-                                        <MenuItem value="0">None</MenuItem>
                                         {genres.map(genre => (
                                             <MenuItem key={genre.id} value={genre.name}>
                                                 <Checkbox checked={this.state.genres.indexOf(genre.name) > -1 } />
@@ -144,7 +158,6 @@ class Home extends Component {
                                         renderValue={selected => selected.join(', ')}
                                         value={this.state.artists}
                                         onChange={this.artistsSelectHandler}>
-                                        <MenuItem value="0">None</MenuItem>
                                         {artists.map(artist => (
                                             <MenuItem key={artist.id} value={artist.first_name + " " + artist.last_name}>
                                                 <Checkbox checked={this.state.artists.indexOf(artist.first_name + " " + artist.last_name) > -1 } />
