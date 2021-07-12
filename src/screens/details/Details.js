@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Header from '../../common/header/Header';
 import './Details.css';
-import moviesData from '../../common/movieData';
+// import moviesData from '../../common/movieData';
 import Typography from '@material-ui/core/Typography';
 import YouTube from 'react-youtube';
 import GridList from '@material-ui/core/GridList';
