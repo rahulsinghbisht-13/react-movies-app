@@ -2,10 +2,10 @@ import React, { Component } from 'react';
 import Header from '../../common/header/Header';
 import Typography from '@material-ui/core/Typography';
 import './BookShow.css';
-import language from '../../common/language';
-import location from '../../common/location';
-import showDate from '../../common/showDate';
-import showTime from '../../common/showTime';
+// import language from '../../common/language';
+// import location from '../../common/location';
+// import showDate from '../../common/showDate';
+// import showTime from '../../common/showTime';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import FormControl from '@material-ui/core/FormControl';
@@ -23,49 +23,143 @@ class BookShow extends Component {
         super();
         this.state = {
             location: "",
+            theatre: "",
             language: "",
             showDate: "",
-            showTime: "",
+            // showTime: "",
             tickets: 0,
             unitPrice: 500,
             availableTickets: 20,
             reqLocation: "dispNone",
             reqLanguage: "dispNone",
             reqShowDate: "dispNone",
-            reqShowTime: "dispNone",
-            reqTickets: "dispNone"
+            reqTheatre: "dispNone",
+            reqTickets: "dispNone",
+            locations: [],
+            languages: [],
+            theatres: [],
+            showDates: [],
+            showTimes: [],
+            originalShows: []
         }
     }
 
+    componentWillMount() {
+        let that = this;
+        let dataShows = null;
+        let xhrShows = new XMLHttpRequest();
+        xhrShows.addEventListener("readystatechange", function () {
+            if (this.readyState === 4) {
+                let response = JSON.parse(this.responseText);
+                that.setState({ originalShows: response.shows });
+                let newLocations = [];
+
+                for (let show of response.shows) {
+                    newLocations.push({ id: show.theatre.city, location: show.theatre.city });
+                }
+
+                newLocations = newLocations.filter((loc, index, self) =>
+                    index === self.findIndex((c) => (
+                        c.id === loc.id
+                    ))
+                )
+
+                that.setState({ locations: newLocations })
+            }
+        })
+
+        xhrShows.open("GET", this.props.baseUrl + "movies/" + this.props.match.params.id + "/shows");
+        xhrShows.setRequestHeader("Cache-Control", "no-cache");
+        xhrShows.send(dataShows);
+    }
+
+
     locationChangeHandler = (event) => {
         this.setState({ location: event.target.value });
+        let newTheatres = [];
+
+        for (let show of this.state.originalShows) {
+            if (show.theatre.city === event.target.value) {
+                newTheatres.push({ id: show.theatre.name, theatre: show.theatre.name });
+            }
+        }
+
+        newTheatres = newTheatres.filter((theatre, index, self) =>
+            index === self.findIndex((t) => (
+                t.id === theatre.id
+            ))
+        )
+
+        this.setState({ theatres: newTheatres });
+    }
+
+    theatreChangeHandler = event => {
+        this.setState({ theatre: event.target.value });
+
+        let newLanguages = [];
+
+        for (let show of this.state.originalShows) {
+            if (show.theatre.city === this.state.location && show.theatre.name === event.target.value) {
+                newLanguages.push({ id: show.language, language: show.language });
+            }
+        }
+
+        newLanguages = newLanguages.filter((lang, index, self) =>
+            index === self.findIndex((l) => (
+                l.id === lang.id
+            ))
+        )
+        this.setState({ languages: newLanguages });
     }
 
     languageChangeHandler = event => {
         this.setState({ language: event.target.value });
+        let newShowDates = [];
+
+        for (let show of this.state.originalShows) {
+            if (show.theatre.city === this.state.location && show.theatre.name === this.state.theatre && show.language === event.target.value) {
+                newShowDates.push({ id: show.show_timing, showDate: show.show_timing });
+            }
+        }
+
+        newShowDates = newShowDates.filter((date, index, self) =>
+            index === self.findIndex((d) => (
+                d.id === date.id
+            ))
+        )
+
+        this.setState({ showDates: newShowDates });
     }
 
     showDateChangeHandler = event => {
         this.setState({ showDate: event.target.value });
-    }
+        let unitPrice = 0;
+        let availableTickets = 0;
 
-    showTimeChangeHandler = event => {
-        this.setState({ showTime: event.target.value });
+        for (let show of this.state.originalShows) {
+            if (show.theatre.city === this.state.location && show.theatre.name === this.state.theatre && show.language === this.state.language && show.show_timing === event.target.value) {
+                unitPrice = show.unit_price;
+                availableTickets = show.available_seats;
+                this.setState({ showId: show.id });
+            }
+        }
+
+        this.setState({ unitPrice: unitPrice, availableTickets: availableTickets });
     }
 
     ticketsChangeHandler = event => {
-        this.setState({ tickets: event.target.value });
+        this.setState({ tickets: event.target.value.split(",") });
     }
 
     bookShowButtonHandler = () => {
         this.state.location === "" ? this.setState({ reqLocation: "dispBlock" }) : this.setState({ reqLocation: "dispNone" });
+        this.state.theatre === "" ? this.setState({ reqTheatre: "dispBlock" }) : this.setState({ reqTheatre: "dispNone" });
         this.state.language === "" ? this.setState({ reqLanguage: "dispBlock" }) : this.setState({ reqLanguage: "dispNone" });
         this.state.showDate === "" ? this.setState({ reqShowDate: "dispBlock" }) : this.setState({ reqShowDate: "dispNone" });
-        this.state.showTime === "" ? this.setState({ reqShowTime: "dispBlock" }) : this.setState({ reqShowTime: "dispNone" });
         this.state.tickets === 0 ? this.setState({ reqTickets: "dispBlock" }) : this.setState({ reqTickets: "dispNone" });
 
 
-        if ((this.state.location === "") || (this.state.language === "") || (this.state.showTime === "") || (this.state.showDate === "") || (this.state.tickets === 0)) { return; }
+        if ((this.state.location === "") || (this.state.theatre === "") || (this.state.language === "") || (this.state.showDate === "") || (this.state.tickets === 0)) { return; }
 
         this.props.history.push({
             pathname: '/confirm/' + this.props.match.params.id,
@@ -94,7 +188,7 @@ class BookShow extends Component {
                                 <Select
                                     value={this.state.location}
                                     onChange={this.locationChangeHandler}>
-                                    {location.map(loc => (
+                                    {this.state.locations.map(loc => (
                                         <MenuItem key={"loc" + loc.id} value={loc.location}>
                                             {loc.location}
                                         </MenuItem>
@@ -106,11 +200,28 @@ class BookShow extends Component {
                             </FormControl>
                             <br /><br />
                             <FormControl required className="formControl">
+                                <InputLabel htmlFor="theatre">Choose Theatre:</InputLabel>
+                                <Select
+                                    value={this.state.theatre}
+                                    onChange={this.theatreChangeHandler}
+                                >
+                                    {this.state.theatres.map(th => (
+                                        <MenuItem key={"theatre" + th.id} value={th.theatre}>
+                                            {th.theatre}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                                <FormHelperText className={this.state.reqTheatre}>
+                                    <span className="red">Required</span>
+                                </FormHelperText>
+                            </FormControl>
+                            <br /><br />
+                            <FormControl required className="formControl">
                                 <InputLabel htmlFor="language">Choose Language:</InputLabel>
                                 <Select
                                     value={this.state.language}
                                     onChange={this.languageChangeHandler}>
-                                    {language.map(lang => (
+                                    {this.state.languages.map(lang => (
                                         <MenuItem key={"lang" + lang.id} value={lang.language}>
                                             {lang.language}
                                         </MenuItem>
@@ -127,7 +238,7 @@ class BookShow extends Component {
                                     value={this.state.showDate}
                                     onChange={this.showDateChangeHandler}
                                 >
-                                    {showDate.map(sd => (
+                                    {this.state.showDates.map(sd => (
                                         <MenuItem key={"showDate" + sd.id} value={sd.showDate}>
                                             {sd.showDate}
                                         </MenuItem>
@@ -139,24 +250,7 @@ class BookShow extends Component {
                             </FormControl>
                             <br /><br />
                             <FormControl required className="formControl">
-                                <InputLabel htmlFor="showTime">Choose Show Time:</InputLabel>
-                                <Select
-                                    value={this.state.showTime}
-                                    onChange={this.showTimeChangeHandler}
-                                >
-                                    {showTime.map(st => (
-                                        <MenuItem key={"showTime" + st.id} value={st.showTime}>
-                                            {st.showTime}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                                <FormHelperText className={this.state.reqShowTime}>
-                                    <span className="red">Required</span>
-                                </FormHelperText>
-                            </FormControl>
-                            <br /><br />
-                            <FormControl required className="formControl">
-                                <InputLabel htmlFor="tickets">Tickets: ({this.state.availableTickets} available)</InputLabel>
+                            <InputLabel htmlFor="tickets">Seat Selection: ( {this.state.availableTickets} available )</InputLabel>
                                 <Input id="tickets" value={this.state.tickets !== 0 ? this.state.tickets : ""} onChange={this.ticketsChangeHandler} />
                                 <FormHelperText className={this.state.reqTickets}>
                                     <span className="red">Required</span>
@@ -167,7 +261,7 @@ class BookShow extends Component {
                                 Unit Price: Rs. {this.state.unitPrice}
                             </Typography>
                             <Typography>
-                                Total Price: Rs. {this.state.unitPrice * this.state.tickets}
+                                Total Price: Rs. {this.state.unitPrice * this.state.tickets.length}
                             </Typography><br />
                             <Button variant="contained" onClick={this.bookShowButtonHandler} color="primary">
                                 BOOK SHOW
