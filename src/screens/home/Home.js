@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import './Home.css';
 import Header from '../../common/header/Header';
 import { withStyles } from '@material-ui/core/styles';
-import artists from '../../common/artists';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import GridListTileBar from '@material-ui/core/GridListTileBar';
@@ -138,6 +137,18 @@ class Home extends Component {
         this.props.history.push('/movie/' + movieId);
     }
 
+    filterApplyHandler = () => {
+        let queryString = "?status=RELEASED";
+        if(this.state.movieName !== "")
+        {
+            queryString += "&title=" + this.state.movieName;
+        }
+        if(this.state.genres.length > 0)
+        {
+            queryString += "&genres=" + this.state.genres.toString();
+        }
+    }
+
     render() {
         const { classes } = this.props;
         return (
@@ -230,7 +241,7 @@ class Home extends Component {
                                 </FormControl>
                                 <br /><br />
                                 <FormControl className={classes.formControl}>
-                                    <Button variant="contained" color="primary">
+                                    <Button variant="contained" color="primary" onClick={() => this.filterApplyHandler()}>
                                         APPLY
                                     </Button>
                                 </FormControl>
