@@ -58,7 +58,9 @@ class Home extends Component {
             genresList: [],
             genres: [],
             artists: [],
-            artistsList: []
+            artistsList: [],
+            releaseDateStart: "",
+            releaseDateEnd: ""
         }
     }
 
@@ -137,6 +139,14 @@ class Home extends Component {
         this.props.history.push('/movie/' + movieId);
     }
 
+    releaseDateStartHandler = event => {
+        this.setState({ releaseDateStart: event.target.value });
+    }
+
+    releaseDateEndHandler = event => {
+        this.setState({ releaseDateEnd: event.target.value });
+    }
+
     filterApplyHandler = () => {
         let queryString = "?status=RELEASED";
         if(this.state.movieName !== "")
@@ -150,6 +160,27 @@ class Home extends Component {
         if (this.state.artists.length > 0) {
             queryString += "&artists=" + this.state.artists.toString();
         }
+        if (this.state.releaseDateStart !== "") {
+            queryString += "&start_date=" + this.state.releaseDateStart;
+        }
+        if (this.state.releaseDateEnd !== "") {
+            queryString += "&end_date=" + this.state.releaseDateEnd;
+        }
+
+        let that = this;
+        let dataFilter = null;
+        let xhrFilter = new XMLHttpRequest();
+        xhrFilter.addEventListener("readystatechange", function () {
+            if (this.readyState === 4) {
+                that.setState({
+                    releasedMovies: JSON.parse(this.responseText).movies
+                });
+            }
+        });
+
+        xhrFilter.open("GET", this.props.baseUrl + "movies" + encodeURI(queryString));
+        xhrFilter.setRequestHeader("Cache-Control", "no-cache");
+        xhrFilter.send(dataFilter);
     }
 
     render() {
@@ -230,7 +261,8 @@ class Home extends Component {
                                         label="Release Date Start"
                                         type="date"
                                         defaultValue=""
-                                        InputLabelProps={{shrink: true}}                                            
+                                        InputLabelProps={{shrink: true}}
+                                        onChange={this.releaseDateStartHandler}                                         
                                     />
                                 </FormControl>
                                 <FormControl className={classes.formControl}>
@@ -239,7 +271,8 @@ class Home extends Component {
                                         label="Release Date End"
                                         type="date"
                                         defaultValue=""
-                                        InputLabelProps={{shrink: true}}                                            
+                                        InputLabelProps={{shrink: true}}
+                                        onChange={this.releaseDateEndHandler}                                            
                                     />
                                 </FormControl>
                                 <br /><br />
