@@ -147,6 +147,9 @@ class Home extends Component {
         {
             queryString += "&genres=" + this.state.genres.toString();
         }
+        if (this.state.artists.length > 0) {
+            queryString += "&artists=" + this.state.artists.toString();
+        }
     }
 
     render() {
