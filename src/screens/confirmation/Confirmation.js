@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Header from '../../common/header/Header';
 import './Confirmation.css';
-import Coupons from '../../common/coupons';
+// import Coupons from '../../common/coupons';
 import Typography from '@material-ui/core/Typography';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -35,6 +35,7 @@ class Confirmation extends Component {
 
         this.state = {
             open: false,
+            bookingId: "",
             couponCode: "",
             totalPrice: 0,
             originalTotalPrice: 0
@@ -43,11 +44,36 @@ class Confirmation extends Component {
 
     componentDidMount() {
         let currentState = this.state;
-        currentState.totalPrice = currentState.originalTotalPrice = parseInt(this.props.location.bookingSummary.unitPrice, 10) * parseInt(this.props.location.bookingSummary.tickets, 10);
+        currentState.totalPrice = currentState.originalTotalPrice = parseInt(this.props.location.bookingSummary.unitPrice, 10) * parseInt(this.props.location.bookingSummary.tickets.length, 10);
         this.setState({ state: currentState });
     }
 
     confirmBookingHandler = () => {
+        let data = JSON.stringify({
+            "customerUuid": sessionStorage.getItem('uuid'),
+            "bookingRequest": {
+                "coupon_code": this.state.couponCode,
+                "show_id": this.props.location.bookingSummary.showId,
+                "tickets": [
+                    this.props.location.bookingSummary.tickets.toString()
+                ]
+            }
+        });
+
+        let that = this;
+        let xhr = new XMLHttpRequest();
+
+        xhr.addEventListener("readystatechange", function () {
+            if (this.readyState === 4) {
+                that.setState({ bookingId: JSON.parse(this.responseText).reference_number });
+            }
+        });
+
+        xhr.open("POST", this.props.baseUrl + "bookings");
+        xhr.setRequestHeader("Authorization", "Bearer " + sessionStorage.getItem('access-token'));
+        xhr.setRequestHeader("Cache-Control", "no-cache");
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(data);
         this.setState({ open: true });
     }
 
@@ -60,18 +86,31 @@ class Confirmation extends Component {
     }
 
     couponApplyHandler = () => {
-        let currentState = this.state;
-        let couponObj = Coupons.filter((coupon) => {
-            return coupon.code === this.state.couponCode
-        })[0];
+        console.log(this.state.couponCode);
+    let that = this;
+    let data = null;
+    let xhr = new XMLHttpRequest();
 
-        if (couponObj !== undefined && couponObj.value > 0) {
-            currentState.totalPrice = this.state.originalTotalPrice - ((this.state.originalTotalPrice * couponObj.value) / 100);
-            this.setState({ currentState });
+    xhr.addEventListener("readystatechange", function () {
+      if (this.readyState === 4) {
+        let currentState = that.state;
+
+        let discountValue = JSON.parse(this.responseText).value;
+        if (discountValue !== undefined && discountValue > 0) {
+          currentState.totalPrice = that.state.originalTotalPrice - ((that.state.originalTotalPrice * discountValue) / 100);
+          that.setState({ currentState });
         } else {
-            currentState.totalPrice = this.state.originalTotalPrice;
-            this.setState({ currentState });
+          currentState.totalPrice = that.state.originalTotalPrice;
+          that.setState({ currentState });
         }
+      }
+    });
+
+    xhr.open("GET", this.props.baseUrl + "coupons/" + this.state.couponCode);
+    xhr.setRequestHeader("Authorization", "Bearer " + sessionStorage.getItem('access-token'));
+    xhr.setRequestHeader("Cache-Control", "no-cache");
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.send(data);
     }
 
     render() {
@@ -109,6 +148,16 @@ class Confirmation extends Component {
 
                                 <div className="coupon-container">
                                     <div className="confirmLeft">
+                                        <Typography>Theatre:</Typography>
+                                    </div>
+                                    <div>
+                                        <Typography>{this.props.location.bookingSummary.theatre}</Typography>
+                                    </div>
+                                </div>
+                                <br />
+
+                                <div className="coupon-container">
+                                    <div className="confirmLeft">
                                         <Typography>Language:</Typography>
                                     </div>
                                     <div>
@@ -129,20 +178,10 @@ class Confirmation extends Component {
 
                                 <div className="coupon-container">
                                     <div className="confirmLeft">
-                                        <Typography>Show Time:</Typography>
-                                    </div>
-                                    <div>
-                                        <Typography>{this.props.location.bookingSummary.showTime}</Typography>
-                                    </div>
-                                </div>
-                                <br />
-
-                                <div className="coupon-container">
-                                    <div className="confirmLeft">
                                         <Typography>Tickets:</Typography>
                                     </div>
                                     <div>
-                                        <Typography>{this.props.location.bookingSummary.tickets}</Typography>
+                                        <Typography>{this.props.location.bookingSummary.tickets.toString()}</Typography>
                                     </div>
                                 </div>
                                 <br />
